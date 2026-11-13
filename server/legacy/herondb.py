@@ -10,7 +10,7 @@
 #   premium  integer pence, signed       e.g. 123456 = GBP 1,234.56
 #   sums ins integer whole pounds        e.g. 750000
 #   percent  integer, percent x 100      e.g. 2250 = 22.5%
-#   postcode upper case, no space        e.g. HU12AB
+#   postcode upper case, no space        e.g. HU12KV
 # -----------------------------------------------------------------------------
 import csv
 import os
