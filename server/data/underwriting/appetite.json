@@ -1,0 +1,86 @@
+[
+ {
+  "trade_code": "OFFC",
+  "trade_name": "Office / professional",
+  "appetite": "open",
+  "max_total_si": 8000000,
+  "notes": "Core appetite."
+ },
+ {
+  "trade_code": "SALN",
+  "trade_name": "Hair and beauty",
+  "appetite": "open",
+  "max_total_si": 3000000,
+  "notes": "Core appetite."
+ },
+ {
+  "trade_code": "RETL",
+  "trade_name": "Retail shop",
+  "appetite": "open",
+  "max_total_si": 6000000,
+  "notes": "Core appetite."
+ },
+ {
+  "trade_code": "WHSE",
+  "trade_name": "Warehouse / storage",
+  "appetite": "open",
+  "max_total_si": 10000000,
+  "notes": "Check stock type and stacking height above 5m."
+ },
+ {
+  "trade_code": "LMFG",
+  "trade_name": "Light manufacturing",
+  "appetite": "open",
+  "max_total_si": 8000000,
+  "notes": "Core appetite. Hot work needs a survey."
+ },
+ {
+  "trade_code": "FOOD",
+  "trade_name": "Food manufacture",
+  "appetite": "open",
+  "max_total_si": 6000000,
+  "notes": "Deep fat frying needs a suppression system."
+ },
+ {
+  "trade_code": "HOTL",
+  "trade_name": "Hotel / guest house",
+  "appetite": "open",
+  "max_total_si": 8000000,
+  "notes": "Core appetite up to 40 rooms."
+ },
+ {
+  "trade_code": "MOTR",
+  "trade_name": "Motor trade",
+  "appetite": "open",
+  "max_total_si": 4000000,
+  "notes": "No vehicle sales forecourts over 2m stock."
+ },
+ {
+  "trade_code": "REST",
+  "trade_name": "Restaurant / cafe",
+  "appetite": "open",
+  "max_total_si": 4000000,
+  "notes": "Ducting cleaning certificate required."
+ },
+ {
+  "trade_code": "CONS",
+  "trade_name": "Building contractor",
+  "appetite": "open",
+  "max_total_si": 3000000,
+  "notes": "Liability led. No work at height above 15m."
+ },
+ {
+  "trade_code": "WOOD",
+  "trade_name": "Woodworking / joinery",
+  "appetite": "refer",
+  "max_total_si": 3000000,
+  "notes": "Refer every case. Dust extraction and waste removal evidence needed."
+ },
+ {
+  "trade_code": "WSTE",
+  "trade_name": "Waste / recycling",
+  "appetite": "refer",
+  "max_total_si": 2000000,
+  "notes": "Refer every case. Fire break and stack separation survey needed."
+ }
+]

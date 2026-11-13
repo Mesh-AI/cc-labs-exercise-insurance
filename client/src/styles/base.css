@@ -1,0 +1,114 @@
+@import "./tokens.css";
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { font-size: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--step-0);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 var(--s3);
+  letter-spacing: -0.005em;
+}
+h1 { font-size: var(--step-3); }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+
+p { margin: 0 0 var(--s4); max-width: var(--measure); }
+
+a { color: var(--larkspur); text-underline-offset: 0.15em; }
+a:hover { text-decoration-thickness: 2px; }
+
+:focus-visible {
+  outline: 2px solid var(--larkspur);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* figures line up in columns everywhere */
+.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+
+.lede { font-size: var(--step-1); color: var(--ink-soft); }
+.quiet { color: var(--ink-soft); }
+.small { font-size: var(--step--1); }
+
+/* a sheet: the one surface treatment. Hairline, no shadow. */
+.sheet {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--s5);
+}
+
+/* ruled table, like a policy schedule */
+table.ruled { width: 100%; border-collapse: collapse; }
+table.ruled th, table.ruled td {
+  text-align: left;
+  padding: var(--s3) var(--s4) var(--s3) 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+table.ruled th { font-weight: 600; font-size: var(--step--1); color: var(--ink-soft); }
+table.ruled tr:last-child td { border-bottom: 0; }
+table.ruled td.num, table.ruled th.num { text-align: right; padding-right: 0; }
+table.ruled td.num + td, table.ruled th.num + th { padding-left: var(--s5); }
+
+/* status: a word and a swatch, never colour alone */
+.status { display: inline-flex; align-items: center; gap: var(--s2); font-weight: 600; white-space: nowrap; }
+.status::before { content: ""; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--ink-soft); }
+.status.good { color: var(--dene); }
+.status.good::before { background: var(--dene); }
+.status.warn { color: var(--amber); }
+.status.warn::before { background: var(--amber); }
+.status.bad { color: var(--rust); }
+.status.bad::before { background: var(--rust); }
+.status.todo { color: var(--ink-soft); }
+.status.todo::before { background: transparent; border: 1.5px solid var(--ink-soft); }
+
+button, .button {
+  font: inherit;
+  font-weight: 600;
+  padding: var(--s2) var(--s4);
+  border-radius: var(--radius);
+  border: 1px solid var(--larkspur);
+  background: var(--larkspur);
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+button.secondary, .button.secondary { background: transparent; color: var(--larkspur); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+label { display: block; font-weight: 600; font-size: var(--step--1); margin-bottom: var(--s1); }
+input, select {
+  font: inherit;
+  width: 100%;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+}
+input:focus, select:focus { border-color: var(--larkspur); }
+fieldset:disabled input, fieldset:disabled select { background: var(--paper); color: var(--ink-soft); }
+
+.notice { padding: var(--s3) var(--s4); border-left: 3px solid var(--ink-soft); background: var(--surface); margin: 0 0 var(--s4); }
+.notice.warn { border-color: var(--amber); background: var(--amber-wash); }
+.notice.bad { border-color: var(--rust); background: var(--rust-wash); }
+.notice.good { border-color: var(--dene); background: var(--dene-wash); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

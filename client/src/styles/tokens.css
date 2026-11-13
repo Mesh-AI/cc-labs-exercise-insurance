@@ -1,0 +1,41 @@
+/*
+  Larkspur & Dene design tokens. One source of truth for colour, type and space.
+  See docs/DESIGN_BRIEF.md for how to use them. Add tokens here, never hex values in views.
+*/
+:root {
+  /* colour */
+  --ink: #1a2238;          /* text, navigation rail */
+  --ink-soft: #55607a;     /* secondary text */
+  --larkspur: #4a50c0;     /* the one action colour: links, primary buttons, focus */
+  --larkspur-wash: #eceefb;
+  --dene: #1c6b57;         /* accepted, paid, healthy */
+  --dene-wash: #e4f2ed;
+  --amber: #9a6208;        /* referred, needs a person */
+  --amber-wash: #fbf1dc;
+  --rust: #b23a2b;         /* declined, failed, on hold */
+  --rust-wash: #f9e7e3;
+  --paper: #f5f6fa;        /* page */
+  --surface: #ffffff;      /* sheets on the page */
+  --rule: #d6dae6;         /* hairlines */
+
+  /* type: no web fonts, so it works offline and behind a corporate proxy */
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.125rem;
+  --step-2: 1.5rem;
+  --step-3: 2.125rem;
+
+  /* space and shape */
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 0.75rem;
+  --s4: 1rem;
+  --s5: 1.5rem;
+  --s6: 2.25rem;
+  --s7: 3.5rem;
+  --radius: 3px;
+  --rail: 15rem;
+  --measure: 68ch;
+}
