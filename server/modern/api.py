@@ -5,10 +5,14 @@ Two journeys run through it today: new business quote and bind, and mid-term
 adjustment. Heron still prices and still holds every policy, so the answers
 are exactly the legacy answers (see modern/adapter.py).
 
-Nothing here talks to underwriting, claims or finance yet. People still carry
-that data between systems by hand. The change cards in docs/cards each add one
-of those connections.
+For an existing customer, pricing reads the claims count from the Claims Desk
+over HTTP (card 1). Underwriting and finance are not connected yet: people
+still carry that data between systems by hand.
 """
+import json
+import os
+import urllib.parse
+import urllib.request
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
@@ -77,6 +81,33 @@ def _decision(price):
     return {'decision': 'refer' if reasons else 'accept', 'decision_reasons': reasons}
 
 
+CLAIMS_DESK_DOWN = 'Claims Desk not reachable: priced on the typed figure.'
+
+
+def _fetch_claims_experience(insured_ref):
+    """Ask the Claims Desk, over HTTP, for an insured's claims experience. Raises on any failure."""
+    base = os.environ.get('ESTATE_BASE_URL', 'http://localhost:8001/api/systems').rstrip('/')
+    url = '%s/claims/experience?%s' % (base, urllib.parse.urlencode({'insured_ref': insured_ref}))
+    with urllib.request.urlopen(url, timeout=2) as resp:
+        return json.load(resp)
+
+
+def _resolve_claims_count(risk: Risk, insured_ref):
+    """
+    For an existing customer, price on the Claims Desk's claims_count_3y instead of the typed
+    figure. New customers, or a Claims Desk that does not answer, keep the typed figure.
+    """
+    typed = {'value': risk.claims_count_3y, 'source': 'typed', 'claims_desk_unavailable': False, 'message': None}
+    if not insured_ref:
+        return typed
+    try:
+        count = int(_fetch_claims_experience(insured_ref)['claims_count_3y'])
+    except Exception:
+        return {**typed, 'claims_desk_unavailable': True, 'message': CLAIMS_DESK_DOWN}
+    risk.claims_count_3y = count
+    return {'value': count, 'source': 'claims_desk', 'claims_desk_unavailable': False, 'message': None}
+
+
 def _commission_pct(broker_code):
     if not broker_code:
         return None
@@ -101,8 +132,9 @@ def find_insureds(q: str):
 @router.post('/quotes/price')
 def price_quote(body: PriceRequest):
     """Price a risk without saving anything. Safe to call on every keystroke."""
+    claims_count = _resolve_claims_count(body.risk, body.insured_ref)
     price = _legacy(adapter.price, body.risk.model_dump(), _commission_pct(body.broker_code))
-    return {'price': price, **_decision(price)}
+    return {'price': price, 'claims_count': claims_count, **_decision(price)}
 
 
 @router.post('/quotes', status_code=201)
@@ -110,11 +142,12 @@ def create_quote(body: QuoteRequest):
     """Save a quote in Heron. Returns the policy with its price."""
     if not body.insured and not body.insured_ref:
         raise HTTPException(status_code=422, detail='Give an insured name or an existing insured reference')
+    claims_count = _resolve_claims_count(body.risk, body.insured_ref)
     q = _legacy(adapter.create_quote, body.risk.model_dump(), body.broker_code, body.inception_date,
                 body.insured.model_dump() if body.insured else None, body.insured_ref, body.user)
     policy = adapter.policy_view(q['POLNO'])
     price = adapter.price(policy['risk'], policy['broker']['commission_pct'])
-    return {'policy': policy, 'price': price, **_decision(price)}
+    return {'policy': policy, 'price': price, 'claims_count': claims_count, **_decision(price)}
 
 
 @router.post('/quotes/{policy_ref}/bind')

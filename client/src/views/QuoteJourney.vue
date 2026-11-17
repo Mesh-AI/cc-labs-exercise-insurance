@@ -35,6 +35,11 @@ const actionError = ref(null)
 
 const isProperty = computed(() => form.risk.product === 'CP')
 
+// For an existing customer the backend prices on the Claims Desk's count, not the typed one.
+const isExisting = computed(() => form.customer === 'existing' && !!form.insured_ref)
+const claimsFromDesk = computed(() => isExisting.value && priced.value?.claims_count?.source === 'claims_desk')
+const claimsDeskDown = computed(() => isExisting.value && !!priced.value?.claims_count?.claims_desk_unavailable)
+
 const canPrice = computed(() => {
   const r = form.risk
   if (r.postcode.replace(/\s/g, '').length < 5) return false
@@ -251,7 +256,12 @@ onMounted(async () => {
           </div>
           <div>
             <label for="claims">Claims in the last three years</label>
-            <input id="claims" v-model.number="form.risk.claims_count_3y" type="number" min="0" max="9">
+            <template v-if="claimsFromDesk">
+              <input id="claims" :value="priced.claims_count.value" type="number" readonly>
+              <span class="small quiet">From Claims Desk</span>
+            </template>
+            <input v-else id="claims" v-model.number="form.risk.claims_count_3y" type="number" min="0" max="9">
+            <p v-if="claimsDeskDown" class="notice warn small" role="status">{{ priced.claims_count.message }}</p>
           </div>
         </div>
       </fieldset>
@@ -311,6 +321,7 @@ fieldset > input { margin-bottom: var(--s4); }
 .chosen { display: flex; justify-content: space-between; align-items: center; gap: var(--s3); padding: var(--s3); background: var(--larkspur-wash); border-radius: var(--radius); }
 .matches { list-style: none; margin: var(--s2) 0 0; padding: 0; display: grid; gap: var(--s1); }
 .matches button { width: 100%; text-align: left; font-weight: 400; border-color: var(--rule); color: var(--ink); }
+input[readonly] { background: var(--larkspur-wash); cursor: default; }
 .from-system { margin: 0; padding: var(--s2) 0; }
 .from-system span { display: block; }
 .side h3 { margin-bottom: var(--s3); }
