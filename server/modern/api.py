@@ -6,8 +6,9 @@ adjustment. Heron still prices and still holds every policy, so the answers
 are exactly the legacy answers (see modern/adapter.py).
 
 For an existing customer, pricing reads the claims count from the Claims Desk
-over HTTP (card 1). Underwriting and finance are not connected yet: people
-still carry that data between systems by hand.
+over HTTP (card 1), and binding posts the premium to the Finance Ledger
+(card 2). Underwriting is not connected yet: people still carry that data
+between systems by hand.
 """
 import json
 import os
@@ -108,6 +109,37 @@ def _resolve_claims_count(risk: Risk, insured_ref):
     return {'value': count, 'source': 'claims_desk', 'claims_desk_unavailable': False, 'message': None}
 
 
+LEDGER_DOWN = 'Finance Ledger not reachable: the premium will go in the overnight file.'
+
+
+def _post_to_ledger(posting):
+    """POST a premium transaction to the Finance Ledger over HTTP. Raises on any failure."""
+    base = os.environ.get('ESTATE_BASE_URL', 'http://localhost:8001/api/systems').rstrip('/')
+    req = urllib.request.Request('%s/finance/postings' % base, data=json.dumps(posting).encode(),
+                                 headers={'Content-Type': 'application/json'}, method='POST')
+    with urllib.request.urlopen(req, timeout=2) as resp:
+        return json.load(resp)
+
+
+def _send_to_finance(trn, policy):
+    """
+    Post Heron's transaction to the ledger and stamp the ledger reference back on it.
+    The ledger is idempotent on transaction_ref, so a repeat never double counts.
+    If the ledger does not answer, the overnight file still carries the premium.
+    """
+    posting = {'transaction_ref': trn['transaction_ref'], 'policy_ref': policy['policy_ref'],
+               'policy_term': trn['term'], 'broker_account': policy['broker']['account'],
+               'transaction_type': trn['type'], 'effective_date': trn['effective_date'],
+               'gross_premium': trn['gross_premium'], 'ipt': trn['ipt'], 'commission': trn['commission']}
+    try:
+        result = _post_to_ledger(posting)
+        adapter.stamp_finance_ref(trn['number'], result['posting_ref'])
+    except Exception:
+        return {'posted': False, 'posting_ref': None, 'duplicate': False, 'message': LEDGER_DOWN}
+    return {'posted': True, 'posting_ref': result['posting_ref'], 'duplicate': bool(result.get('duplicate')),
+            'message': None}
+
+
 def _commission_pct(broker_code):
     if not broker_code:
         return None
@@ -152,9 +184,12 @@ def create_quote(body: QuoteRequest):
 
 @router.post('/quotes/{policy_ref}/bind')
 def bind_quote(policy_ref: str, body: BindRequest):
-    """Bind a saved quote. Heron writes the new business premium transaction."""
+    """Bind a saved quote. Heron writes the premium transaction, and it is posted to the Finance Ledger."""
     trn = _legacy(adapter.bind_quote, policy_ref, body.user)
-    return {'policy': adapter.policy_view(policy_ref), 'transaction': trn}
+    finance = _send_to_finance(trn, adapter.policy_view(policy_ref))
+    if finance['posted']:
+        trn = {**trn, 'finance_ref': finance['posting_ref']}
+    return {'policy': adapter.policy_view(policy_ref), 'transaction': trn, 'finance': finance}
 
 
 @router.get('/policies')

@@ -295,6 +295,8 @@ onMounted(async () => {
           Heron wrote transaction {{ bound.transaction.transaction_ref }} for
           {{ money(bound.transaction.gross_premium) }} plus {{ money(bound.transaction.ipt) }} tax.
         </p>
+        <p v-if="bound.finance?.posted">Posted to the Finance Ledger as <strong>{{ bound.finance.posting_ref }}</strong>.</p>
+        <p v-else-if="bound.finance" class="notice warn small" role="status">{{ bound.finance.message }}</p>
         <div class="actions">
           <router-link class="button" :to="`/policies/${bound.policy.policy_ref}`">Open the policy</router-link>
           <button class="secondary" @click="startAgain">Start another quote</button>
