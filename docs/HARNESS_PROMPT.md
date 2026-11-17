@@ -1,46 +1,33 @@
 # Harness prompt
 
-Run this in Claude Code at the root of the repo you are working on, your own or this one. It builds a small harness: a `CLAUDE.md`, two templates and three slash commands that walk you from intent, to spec, to code built in auto mode.
-
-Johan will share the final version on the day. This draft is here so the repo is complete if you work through it on your own.
+Run this in Claude Code at the root of the repo you are working on, your own or this one. It builds a minimal harness, based on [the AI-native SDLC playbook](https://claude.com/resources/articles/the-ai-native-sdlc-playbook), that takes every change from intent, to spec, to a verified build.
 
 ```
-Set up this repository so every change goes through two written steps
-before any code: an intent, then a spec. This is the common pattern in
-spec-driven development: intent, then decomposition.
+Read https://claude.com/resources/articles/the-ai-native-sdlc-playbook,
+then set up a minimal harness in this repo that follows it. Explore the
+repo first and ask me what you need to know.
 
-First explore the repo: its layout, how to run it, how to run the tests,
-and any docs. Then ask me up to three short questions, such as what must
-never be changed and who approves a spec.
+Every change should go through three stages, each guided by a skill I
+can trigger in plain words or as a slash command:
 
-Then create, keeping every file short:
+1. Intent: interview me and write intent.md: what is wanted, why, and
+   under which constraints.
+2. Spec: as soon as I approve intent.md, go straight on and turn it
+   into spec.md, with testable acceptance criteria and any areas of
+   concern flagged.
+3. Build: once I approve spec.md, ask me whether to start building, and
+   remind me to switch to auto mode first. When I say yes, implement it
+   without further prompting and prove each acceptance criterion with a
+   test or check that passes.
 
-1. CLAUDE.md: what the project is, the commands to start it and run the
-   tests, its rules, and links to any docs folder. Add a short section on
-   the intent > spec > build flow.
+I must approve intent.md and spec.md before the next stage can start.
+Never treat anything other than my explicit approval as approval.
+Record each approval in the file with my name and the date. Take the
+name from git config user.name. If that is not set, ask me for my name
+and suggest I run git config --global user.name "<name>".
 
-2. docs/sdlc/templates/intent.md: the problem, who it is for, what done
-   looks like, what is out of scope.
-
-3. docs/sdlc/templates/spec.md: the change broken into small steps, each
-   with the test that proves it; what happens when something it depends
-   on fails; and a "Concerns" section that asks whether the change
-   touches pricing, a customer outcome or regulatory reporting, and who
-   must sign it off.
-
-4. Three slash commands in .claude/commands:
-   /intent  interview me, then write specs/<slug>/intent.md from the template
-   /spec    read an approved intent and write specs/<slug>/spec.md
-   /build   implement an approved spec, run the tests until they pass,
-            then summarise the diff against the spec
-   Each one stops and asks me to approve before the next stage.
-
-5. .claude/settings.json with two hooks: one that blocks edits to the
-   paths I say must never change, and one that runs the tests after
-   Python files are edited.
-
-Do not change any application code. When you finish, list what you made
-and tell me how to start.
+Keep everything as small as possible and do not change application
+code.
 ```
 
-On this repo, the answers to its questions are: never change `server/legacy/`, the characterisation tests, or `server/data/legacy/RATTBL.csv`; specs are approved by the person at the keyboard; and the tests run with `cd tests && uv run --project ../server pytest -q`.
+On this repo, useful answers to its questions are: never change `server/legacy/`, the characterisation tests, or `server/data/legacy/RATTBL.csv`; specs are approved by the person at the keyboard; and the tests run with `cd tests && uv run --project ../server pytest -q`.
