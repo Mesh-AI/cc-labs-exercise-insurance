@@ -11,6 +11,8 @@ ENV/
 *.egg-info/
 dist/
 build/
+# ...but not a Claude Code skill named "build"
+!.claude/skills/build/
 
 # Node.js
 node_modules/
