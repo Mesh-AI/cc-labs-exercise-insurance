@@ -22,6 +22,19 @@ from systems.common import today  # noqa: E402
 LEGACY_DATA = os.path.join(str(server_path), "data", "legacy")
 
 
+@pytest.fixture(autouse=True)
+def no_live_estate(monkeypatch):
+    """
+    The new API reaches the downstream systems over HTTP at ESTATE_BASE_URL
+    (docs/ARCHITECTURE.md). Nothing listens there during tests, so point it at a
+    closed port: the connection is refused at once instead of reaching whatever
+    happens to be running on 8001. A test that needs a downstream answer must
+    supply one, for example by monkeypatching the fetch to use the `client`
+    fixture. A test that doesn't gets the "system is down" path.
+    """
+    monkeypatch.setenv("ESTATE_BASE_URL", "http://127.0.0.1:9/api/systems")
+
+
 @pytest.fixture
 def client():
     """Test client for the whole backend: new API, Heron screens and the three downstream systems."""
