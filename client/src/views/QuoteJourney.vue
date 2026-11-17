@@ -39,6 +39,9 @@ const isProperty = computed(() => form.risk.product === 'CP')
 // For an existing customer the backend prices on the Claims Desk's count, not the typed one.
 const isExisting = computed(() => form.customer === 'existing' && !!form.insured_ref)
 const claimsFromDesk = computed(() => isExisting.value && priced.value?.claims_count?.source === 'claims_desk')
+// Credit hold is checked for the broker the quote was last priced with. Advice only.
+const brokerCredit = computed(() =>
+  form.broker_code && priced.value?.broker_credit ? priced.value.broker_credit : null)
 const claimsDeskDown = computed(() => isExisting.value && !!priced.value?.claims_count?.claims_desk_unavailable)
 
 const canPrice = computed(() => {
@@ -168,6 +171,14 @@ onMounted(async () => {
               <option value="" disabled>Choose a broker</option>
               <option v-for="b in lookups.brokers" :key="b.code" :value="b.code">{{ b.name }} ({{ b.code }})</option>
             </select>
+            <p v-if="brokerCredit?.on_hold" class="notice warn small credit-hold" role="status">
+              <strong>On credit hold:</strong> {{ brokerCredit.policies_on_credit_hold }}
+              {{ brokerCredit.policies_on_credit_hold === 1 ? 'policy' : 'policies' }} unpaid for more than 60 days,
+              {{ money(brokerCredit.overdue_amount) }} overdue. Check with credit control before placing more business.
+            </p>
+            <p v-else-if="brokerCredit && !brokerCredit.checked" class="notice warn small credit-unchecked" role="status">
+              {{ brokerCredit.message }}
+            </p>
           </div>
           <div>
             <label for="user">Signed in as</label>

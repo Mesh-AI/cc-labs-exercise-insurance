@@ -7,11 +7,13 @@ are exactly the legacy answers (see modern/adapter.py).
 
 For an existing customer, pricing reads the claims count from the Claims Desk
 over HTTP (card 1), and binding posts the premium to the Finance Ledger
-(card 2). Pricing also shows underwriting's technical price (card 3), as advice
-only: referrals are still re-keyed into the Workbench by hand.
+(card 2). Pricing also shows underwriting's technical price (card 3) and warns
+when the broker has premium on credit hold (card 4), both as advice only:
+referrals are still re-keyed into the Workbench by hand.
 """
 import json
 import os
+import urllib.error
 import urllib.parse
 import urllib.request
 from typing import Optional
@@ -172,6 +174,46 @@ def _technical_check(risk: Risk, quoted_premium):
             'below_threshold': deviation < -BELOW_TECHNICAL_PCT, 'message': None}
 
 
+LEDGER_UNCHECKED = 'Finance Ledger not reachable: broker credit status not checked.'
+
+
+def _ledger_get(path):
+    """GET from the Finance Ledger over HTTP. Returns (status, json); raises on connection errors."""
+    base = os.environ.get('ESTATE_BASE_URL', 'http://localhost:8001/api/systems').rstrip('/')
+    try:
+        with urllib.request.urlopen(base + path, timeout=2) as resp:
+            return resp.status, json.load(resp)
+    except urllib.error.HTTPError as ex:
+        return ex.code, None
+
+
+def _fetch_broker_statement(broker_code):
+    """The broker's ledger statement, or None if the broker has no postings yet."""
+    status, body = _ledger_get('/finance/brokers/BRK-%s/statement' % urllib.parse.quote(broker_code.upper()))
+    if status == 404:
+        return None
+    if status != 200:
+        raise RuntimeError('Finance Ledger answered %s' % status)
+    return body
+
+
+def _broker_credit(broker_code):
+    """
+    Warn, never block: does the broker have policies on credit hold (unpaid over 60 days)?
+    The 60-day rule is the ledger's; this only reads its answer.
+    """
+    if not broker_code:
+        return None
+    try:
+        s = _fetch_broker_statement(broker_code)
+    except Exception:
+        return {'checked': False, 'on_hold': False, 'policies_on_credit_hold': None, 'overdue_amount': None,
+                'message': LEDGER_UNCHECKED}
+    held = int(s['policies_on_credit_hold']) if s else 0
+    return {'checked': True, 'on_hold': held > 0, 'policies_on_credit_hold': held,
+            'overdue_amount': float(s['overdue_amount']) if s else 0.0, 'message': None}
+
+
 def _commission_pct(broker_code):
     if not broker_code:
         return None
@@ -199,7 +241,8 @@ def price_quote(body: PriceRequest):
     claims_count = _resolve_claims_count(body.risk, body.insured_ref)
     price = _legacy(adapter.price, body.risk.model_dump(), _commission_pct(body.broker_code))
     technical = _technical_check(body.risk, price['gross_premium'])
-    return {'price': price, 'claims_count': claims_count, 'technical': technical, **_decision(price)}
+    return {'price': price, 'claims_count': claims_count, 'technical': technical,
+            'broker_credit': _broker_credit(body.broker_code), **_decision(price)}
 
 
 @router.post('/quotes', status_code=201)
