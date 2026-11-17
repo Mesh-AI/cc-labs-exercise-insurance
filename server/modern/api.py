@@ -7,8 +7,8 @@ are exactly the legacy answers (see modern/adapter.py).
 
 For an existing customer, pricing reads the claims count from the Claims Desk
 over HTTP (card 1), and binding posts the premium to the Finance Ledger
-(card 2). Underwriting is not connected yet: people still carry that data
-between systems by hand.
+(card 2). Pricing also shows underwriting's technical price (card 3), as advice
+only: referrals are still re-keyed into the Workbench by hand.
 """
 import json
 import os
@@ -140,6 +140,38 @@ def _send_to_finance(trn, policy):
             'message': None}
 
 
+WORKBENCH_DOWN = 'Underwriting Workbench not reachable: no technical price check.'
+BELOW_TECHNICAL_PCT = 8.0
+
+
+def _post_assessment(body):
+    """POST a risk to the Underwriting Workbench over HTTP. Raises on any failure."""
+    base = os.environ.get('ESTATE_BASE_URL', 'http://localhost:8001/api/systems').rstrip('/')
+    req = urllib.request.Request('%s/underwriting/assessments' % base, data=json.dumps(body).encode(),
+                                 headers={'Content-Type': 'application/json'}, method='POST')
+    with urllib.request.urlopen(req, timeout=2) as resp:
+        return json.load(resp)
+
+
+def _technical_check(risk: Risk, quoted_premium):
+    """
+    Compare Heron's premium (excluding IPT) with underwriting's technical price.
+    Advice only: the Workbench's own decision and reasons are ignored, so Heron's
+    price and its accept/refer decision never change.
+    """
+    out = {'available': False, 'technical_premium': None, 'quoted_premium': quoted_premium,
+           'deviation_pct': None, 'below_threshold': False, 'threshold_pct': BELOW_TECHNICAL_PCT,
+           'message': WORKBENCH_DOWN}
+    try:
+        a = _post_assessment({**risk.model_dump(), 'quoted_premium': quoted_premium})
+        deviation = float(a['deviation_from_technical_pct'])
+        technical = float(a['technical_premium'])
+    except Exception:
+        return out
+    return {**out, 'available': True, 'technical_premium': technical, 'deviation_pct': deviation,
+            'below_threshold': deviation < -BELOW_TECHNICAL_PCT, 'message': None}
+
+
 def _commission_pct(broker_code):
     if not broker_code:
         return None
@@ -166,7 +198,8 @@ def price_quote(body: PriceRequest):
     """Price a risk without saving anything. Safe to call on every keystroke."""
     claims_count = _resolve_claims_count(body.risk, body.insured_ref)
     price = _legacy(adapter.price, body.risk.model_dump(), _commission_pct(body.broker_code))
-    return {'price': price, 'claims_count': claims_count, **_decision(price)}
+    technical = _technical_check(body.risk, price['gross_premium'])
+    return {'price': price, 'claims_count': claims_count, 'technical': technical, **_decision(price)}
 
 
 @router.post('/quotes', status_code=201)

@@ -4,6 +4,7 @@ import { api, errorMessage } from '../api'
 import { money, date, postcode as showPostcode } from '../utils/format'
 import PremiumSchedule from '../components/PremiumSchedule.vue'
 import DecisionBanner from '../components/DecisionBanner.vue'
+import TechnicalCheck from '../components/TechnicalCheck.vue'
 
 const lookups = ref(null)
 const loadError = ref(null)
@@ -269,6 +270,7 @@ onMounted(async () => {
 
     <aside>
       <PremiumSchedule :price="priced ? priced.price : null" :stale="pricing" />
+      <TechnicalCheck v-if="priced && !priceError" :check="priced.technical" />
       <p v-if="priceError" class="notice bad" role="alert">{{ priceError }}</p>
       <DecisionBanner v-else-if="priced && !bound" :decision="priced.decision" :reasons="priced.decision_reasons" />
 
