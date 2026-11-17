@@ -30,9 +30,10 @@ cd server && uv run python ../scripts/check_data.py    # data integrity across t
 ## On the day
 
 1. Build a simple harness with the prompt in [docs/HARNESS_PROMPT.md](docs/HARNESS_PROMPT.md).
-2. Pick a change card from [docs/cards](docs/cards). Cards 1 and 2 suit the first block.
-3. Take it from intent, to spec, to working code built by Claude in auto mode.
-4. Fill in the [use case card](docs/USE_CASE_CARD.md).
+1. (Optional) Prompt Claude to explain the codebase to you, at your desired level of complexity, for example: 'I am new to this codebase. Explain it to me using text and diagrams in a format that I can consume in less than 5 minutes' This is described in [Card 0](docs/cards/card-0-explain-project.md)
+1. Pick a change card from [docs/cards](docs/cards). Cards 1 and 2 suit the first block.
+1. Take it from intent, to spec, to working code built by Claude in auto mode.
+1. Fill in the [use case card](docs/USE_CASE_CARD.md).
 
 The step-by-step is in [docs/ATTENDEE_GUIDE.md](docs/ATTENDEE_GUIDE.md).
 
