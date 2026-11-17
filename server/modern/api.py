@@ -8,9 +8,11 @@ are exactly the legacy answers (see modern/adapter.py).
 For an existing customer, pricing reads the claims count from the Claims Desk
 over HTTP (card 1), and binding posts the premium to the Finance Ledger
 (card 2). Pricing also shows underwriting's technical price (card 3) and warns
-when the broker has premium on credit hold (card 4), both as advice only:
+when the broker has premium on credit hold (card 4), and the policy page lists
+the policy's claims from the Claims Desk (card 5), all as advice only:
 referrals are still re-keyed into the Workbench by hand.
 """
+import datetime
 import json
 import os
 import urllib.error
@@ -214,6 +216,41 @@ def _broker_credit(broker_code):
             'overdue_amount': float(s['overdue_amount']) if s else 0.0, 'message': None}
 
 
+CLAIMS_HISTORY_DOWN = 'Claims Desk not reachable: claims history not shown.'
+
+
+def _claims_desk_get(path, params):
+    """GET from the Claims Desk over HTTP. Raises on any failure."""
+    base = os.environ.get('ESTATE_BASE_URL', 'http://localhost:8001/api/systems').rstrip('/')
+    with urllib.request.urlopen('%s/claims%s?%s' % (base, path, urllib.parse.urlencode(params)), timeout=2) as resp:
+        return json.load(resp)
+
+
+def _claims_history(policy):
+    """
+    The policy's claims from the Claims Desk, and whether Heron's keyed count for this
+    term is lower than the Claims Desk's count in the three years before it started.
+    Advice only: Heron's figure is never changed.
+    """
+    inception = datetime.date.fromisoformat(policy['inception_date'])
+    as_at = (inception - datetime.timedelta(days=1)).isoformat()
+    heron_count = policy['risk']['claims_count_3y']
+    out = {'available': False, 'claims': [], 'heron_count': heron_count, 'claims_desk_count': None,
+           'compared_as_at': as_at, 'inception_date': policy['inception_date'], 'lower_in_heron': False,
+           'message': CLAIMS_HISTORY_DOWN}
+    try:
+        rows = _claims_desk_get('/claims', {'policy_ref': policy['policy_ref']})
+        exp = _claims_desk_get('/experience', {'policy_ref': policy['policy_ref'], 'as_at': as_at})
+        desk_count = int(exp['claims_count_3y'])
+    except Exception:
+        return out
+    claims = [{'claim_ref': c['claim_ref'], 'loss_date': c['loss_date'], 'description': c['description'],
+               'term': c['policy_term'], 'status': c['status'], 'paid': c['paid'], 'outstanding': c['outstanding']}
+              for c in sorted(rows, key=lambda c: c['loss_date'], reverse=True)]
+    return {**out, 'available': True, 'claims': claims, 'claims_desk_count': desk_count,
+            'lower_in_heron': heron_count < desk_count, 'message': None}
+
+
 def _commission_pct(broker_code):
     if not broker_code:
         return None
@@ -276,7 +313,8 @@ def list_policies(q: str = '', status: str = '', limit: int = 50):
 
 @router.get('/policies/{policy_ref}')
 def get_policy(policy_ref: str):
-    return _legacy(adapter.policy_view, policy_ref)
+    policy = _legacy(adapter.policy_view, policy_ref)
+    return {**policy, 'claims': _claims_history(policy)}
 
 
 @router.post('/policies/{policy_ref}/adjustments/preview')

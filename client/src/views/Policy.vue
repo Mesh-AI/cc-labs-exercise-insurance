@@ -127,7 +127,7 @@ onMounted(load)
               <tr><td>Annual turnover</td><td class="num">{{ pounds(policy.risk.turnover) }}</td></tr>
               <tr><td>Employees</td><td class="num">{{ policy.risk.employees }}</td></tr>
             </template>
-            <tr><td>Claims in three years, as keyed in Heron</td><td class="num">{{ policy.risk.claims_count_3y }}</td></tr>
+            <tr :class="{ drift: policy.claims?.lower_in_heron }"><td>Claims in three years, as keyed in Heron</td><td class="num">{{ policy.risk.claims_count_3y }}</td></tr>
             <tr><td>Broker</td><td>{{ policy.broker.name }} ({{ policy.broker.commission_pct }}%)</td></tr>
           </tbody>
         </table>
@@ -234,6 +234,32 @@ onMounted(load)
       </table>
     </section>
 
+    <section v-if="policy.claims" class="sheet block claims">
+      <h2>Claims</h2>
+      <p v-if="!policy.claims.available" class="notice warn small" role="status">{{ policy.claims.message }}</p>
+      <template v-else>
+        <p v-if="policy.claims.lower_in_heron" class="notice warn" role="status">
+          Heron has {{ policy.claims.heron_count }} {{ policy.claims.heron_count === 1 ? 'claim' : 'claims' }} keyed
+          for this term, but the Claims Desk shows {{ policy.claims.claims_desk_count }} in the three years before
+          cover started on {{ date(policy.claims.inception_date) }}. The premium may be too low.
+        </p>
+        <p v-if="!policy.claims.claims.length" class="quiet">No claims.</p>
+        <table v-else class="ruled">
+          <thead>
+            <tr><th>Loss date</th><th>Claim</th><th>What happened</th><th>Term</th><th>Status</th><th class="num">Paid</th><th class="num">Outstanding</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="c in policy.claims.claims" :key="c.claim_ref">
+              <td>{{ date(c.loss_date) }}</td><td>{{ c.claim_ref }}</td><td>{{ c.description }}</td>
+              <td>{{ c.term }}</td><td>{{ c.status }}</td>
+              <td class="num">{{ money(c.paid) }}</td><td class="num">{{ money(c.outstanding) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="small quiet source">From the Claims Desk. Declined claims are listed but not counted.</p>
+      </template>
+    </section>
+
     <section v-if="policy.endorsements.length" class="sheet block">
       <h2>Endorsements</h2>
       <table class="ruled">
@@ -258,6 +284,8 @@ onMounted(load)
 .adjust { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--s5); align-items: start; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s4); margin-bottom: var(--s4); }
 .actions { display: flex; gap: var(--s3); margin-top: var(--s4); }
+.drift td { background: var(--amber-wash); }
+.claims .source { margin: var(--s3) 0 0; }
 @media (max-width: 1000px) {
   .cols, .adjust, .row { grid-template-columns: 1fr; }
 }
