@@ -1,10 +1,10 @@
 # Use case card
 
-Fill this in at 16:20. It takes five minutes, and it is how Anthropic and Indicium follow up with something useful for your team.
+Fill this in when you have completed a task. It takes five minutes, and it is how Anthropic and Indicium follow up with something useful for your team.
 
 **Your name and team:**
 
-**The change you built today:**
+**The change you built:**
 
 | Question | Your answer |
 |---|---|

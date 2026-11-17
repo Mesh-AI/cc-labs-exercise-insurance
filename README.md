@@ -21,19 +21,27 @@ You need Python 3.11+, [uv](https://docs.astral.sh/uv/), Node 18+, git and Claud
 | Backend API docs | http://localhost:8001/docs |
 | Underwriting, claims and finance API docs | http://localhost:8001/api/systems/underwriting/docs (and `/claims/docs`, `/finance/docs`) |
 
+Run all tests (about 3 seconds):
+
 ```bash
-cd tests && uv run --project ../server pytest          # all tests, about 3 seconds
-cd server && uv run python ../scripts/check_data.py    # data integrity across the four systems
-./scripts/stop.sh
+(cd tests && uv run --project ../server pytest)
 ```
+
+Check data integrity across the four systems:
+
+```bash
+(cd server && uv run python ../scripts/check_data.py)
+```
+
 
 ## On the day
 
 1. Build a simple harness with the prompt in [docs/HARNESS_PROMPT.md](docs/HARNESS_PROMPT.md).
 1. (Optional) Prompt Claude to explain the codebase to you, at your desired level of complexity, for example: 'I am new to this codebase. Explain it to me using text and diagrams in a format that I can consume in less than 5 minutes' This is described in [Card 0](docs/cards/card-0-explain-project.md)
 1. Pick a change card from [docs/cards](docs/cards). Cards 1 and 2 suit the first block.
-1. Take it from intent, to spec, to working code built by Claude in auto mode.
+1. Make sure that you understand the task and the Success Criteria, then take it from intent, to spec, to working code built by Claude in auto mode.
 1. Fill in the [use case card](docs/USE_CASE_CARD.md).
+1. Pick another change card. Repeat.
 
 The step-by-step is in [docs/ATTENDEE_GUIDE.md](docs/ATTENDEE_GUIDE.md).
 
