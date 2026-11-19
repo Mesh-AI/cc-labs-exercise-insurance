@@ -42,6 +42,7 @@ Check data integrity across the four systems:
 1. Make sure that you understand the task and the Success Criteria, then take it from intent, to spec, to working code built by Claude in auto mode.
 1. Fill in the [use case card](docs/USE_CASE_CARD.md).
 1. Pick another change card. Repeat.
+1. (Extension) Finished cards 1 to 5? [Card 6](docs/cards/card-6-extend-the-harness.md) is open-ended: improve the harness itself, taking the change through intent, spec and build.
 
 The step-by-step is in [docs/ATTENDEE_GUIDE.md](docs/ATTENDEE_GUIDE.md).
 
