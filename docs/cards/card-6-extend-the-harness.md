@@ -42,7 +42,9 @@ Changing the app. If an idea needs an app change to prove it works, keep that ch
 
 ## Ideas, if you want them
 
-Try to come up with your own first. Each idea below opens to show a starting prompt and a sketch. The sketches are untested starting points, not solutions: check them against the docs, and let your spec decide the details.
+Push yourself: **don't open these until you've had a go yourself.** Pick a weakness from Today, or one you spotted while doing cards 1 to 5, and see how far you get with your own intent and spec. Working out what to build, and how to make it enforceable, is the exercise.
+
+The titles are there for inspiration. Open one only if you get stuck or don't know where to start. Each one opens to show a starting prompt and a sketch. The sketches are untested starting points, not solutions: check them against the docs, and let your spec decide the details.
 
 <details>
 <summary><strong>1. Make approval tamper-proof</strong>: only a human can approve</summary>
