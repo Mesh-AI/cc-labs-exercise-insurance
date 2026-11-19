@@ -30,6 +30,8 @@ If the harness comes out wrong and/or time is short, `git checkout harness` give
 
 If your first change runs long, finish it in block 2 rather than starting a second.
 
+Finished cards 1 to 5 with time to spare? [Card 6](cards/card-6-extend-the-harness.md) is an open-ended extension: instead of changing the app, you improve the harness itself, and take that change through intent, spec and build too.
+
 ## The rules of this repo
 
 - Never change `server/legacy/`. The characterisation tests prove Heron's prices are unchanged, and they must keep passing.
